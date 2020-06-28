@@ -4,6 +4,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 
@@ -92,4 +93,39 @@ public class HttpClientHelper {
     }
 
     //TODO: допишите методы для запросов PUT, PATCH и DELETE
+    public static HttpResponse put(String endpointUrl, String body) throws IOException {
+        //Создаём переменую headers типа Map
+        Map<String, String> headers = new HashMap<>();
+        //Добавляем в headers наш заголовок
+        headers.put("Content-Type", "application/json");
+
+        //возвращаем response
+        return put(endpointUrl, body, headers);
+    }
+
+    public static HttpResponse put(String endpointUrl, String body, Map<String, String> headers) throws IOException {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPut put = new HttpPut(endpointUrl);
+        for (String headerKey : headers.keySet()) {
+            put.addHeader(headerKey, headers.get(headerKey));
+        }
+        put.setEntity(new StringEntity(body));
+
+        HttpResponse response = client.execute(put);
+        return response;
+    }
+    /*
+    public static HttpResponse patch(String endpointUrl, String body) throws IOException {
+
+        //возвращаем response
+        return response;
+    }
+    */
+    /*
+    public static HttpResponse delete(String endpointUrl, String body) throws IOException {
+
+        //возвращаем response
+        return response;
+    }
+    */
 }

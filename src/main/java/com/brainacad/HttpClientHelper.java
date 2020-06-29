@@ -2,27 +2,30 @@ package com.brainacad;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class HttpClientHelper {
 
-    public static HttpResponse get(String endpointUrl, String parameters) throws IOException {
-        //TODO: написать метод для GET запроса с хедерами по умолчанию
-        //Создаём переменую headers типа Map
-        Map<String, String> headers = new HashMap<>();
-        //Добавляем в headers наш заголовок
-        headers.put("Content-Type", "application/json");
+    public static HttpResponse get(String endpointUrl) throws IOException {
+        return get(endpointUrl, null);
+    }
 
+    public static HttpResponse get(String endpointUrl, String parameters) throws IOException {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
         return get(endpointUrl, parameters, headers);
     }
 
@@ -31,7 +34,10 @@ public class HttpClientHelper {
         //Создаём экземпляр HTTP клиента
         HttpClient client = HttpClientBuilder.create().build();
         //Создаём HTTP GET запрос из URL и параметров
-        HttpGet request = new HttpGet(endpointUrl + "?" + parameters);
+        HttpGet request;
+        if(parameters != null) {
+            request = new HttpGet(endpointUrl + "?" + parameters);
+        }else request = new HttpGet(endpointUrl);
 
         //добавляем в запрос необходимые хедеры
         for (String headerKey : headers.keySet()) {
@@ -43,6 +49,44 @@ public class HttpClientHelper {
 
         //возвращаем response
         return response;
+    }
+
+
+    public static HttpResponse delayedGet(String endpointUrl) throws IOException {
+        return get(endpointUrl, null);
+    }
+
+    public static HttpResponse delayedGet(String endpointUrl, String parameters) throws IOException {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        return get(endpointUrl, parameters, headers);
+    }
+
+    public static HttpResponse delayedGet(String endpointUrl, String parameters, Map<String, String> headers) throws IOException {
+        HttpResponse httpResponse;
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            final RequestConfig requestConfig = RequestConfig.custom()
+                    .setConnectionRequestTimeout(1000)
+                    .setConnectTimeout(1000)
+                    .setSocketTimeout(1000)
+                    .build();
+
+            final HttpGet httpGet;
+            if(parameters != null) {
+                httpGet = new HttpGet(endpointUrl + "?" + parameters);
+            }else httpGet = new HttpGet(endpointUrl);
+
+            for (String headerKey : headers.keySet()) {
+                httpGet.addHeader(headerKey, headers.get(headerKey));
+            }
+
+            httpGet.setConfig(requestConfig);
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                EntityUtils.consumeQuietly(response.getEntity());
+                httpResponse = response;
+            }
+        }
+        return httpResponse;
     }
 
 
@@ -114,18 +158,47 @@ public class HttpClientHelper {
         HttpResponse response = client.execute(put);
         return response;
     }
-    /*
+
     public static HttpResponse patch(String endpointUrl, String body) throws IOException {
+        //Создаём переменую headers типа Map
+        Map<String, String> headers = new HashMap<>();
+        //Добавляем в headers наш заголовок
+        headers.put("Content-Type", "application/json");
 
         //возвращаем response
+        return patch(endpointUrl, body, headers);
+    }
+
+    public static HttpResponse patch(String endpointUrl, String body, Map<String, String> headers) throws IOException {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPatch patch = new HttpPatch(endpointUrl);
+        for (String headerKey : headers.keySet()) {
+            patch.addHeader(headerKey, headers.get(headerKey));
+        }
+        patch.setEntity(new StringEntity(body));
+
+        HttpResponse response = client.execute(patch);
         return response;
     }
-    */
-    /*
-    public static HttpResponse delete(String endpointUrl, String body) throws IOException {
+
+    public static HttpResponse delete(String endpointUrl) throws IOException {
+        //Создаём переменую headers типа Map
+        Map<String, String> headers = new HashMap<>();
+        //Добавляем в headers наш заголовок
+        headers.put("Content-Type", "application/json");
 
         //возвращаем response
+        return delete(endpointUrl, headers);
+    }
+
+    public static HttpResponse delete(String endpointUrl, Map<String, String> headers) throws IOException {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpDelete delete = new HttpDelete(endpointUrl);
+        for (String headerKey : headers.keySet()) {
+            delete.addHeader(headerKey, headers.get(headerKey));
+        }
+
+        HttpResponse response = client.execute(delete);
         return response;
     }
-    */
 }

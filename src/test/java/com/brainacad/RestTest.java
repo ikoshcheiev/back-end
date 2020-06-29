@@ -324,7 +324,7 @@ public class RestTest {
     @Test//GET метод
     public void checkGetDelayedResponse() throws IOException {
         String endpoint = "/api/users";
-        HttpResponse response = HttpClientHelper.delayedGet(URL + endpoint, "delay=3");
+        HttpResponse response = HttpClientHelper.get(URL + endpoint, "delay=3");
 
         int statusCode = response.getStatusLine().getStatusCode();
         System.out.println("Response Code : " + statusCode);

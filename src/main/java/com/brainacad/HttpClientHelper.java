@@ -52,22 +52,22 @@ public class HttpClientHelper {
 
 
     public static HttpResponse delayedGet(String endpointUrl) throws IOException {
-        return get(endpointUrl, null);
+        return delayedGet(endpointUrl, null);
     }
 
     public static HttpResponse delayedGet(String endpointUrl, String parameters) throws IOException {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        return get(endpointUrl, parameters, headers);
+        return delayedGet(endpointUrl, parameters, headers);
     }
 
     public static HttpResponse delayedGet(String endpointUrl, String parameters, Map<String, String> headers) throws IOException {
         HttpResponse httpResponse;
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             final RequestConfig requestConfig = RequestConfig.custom()
-                    .setConnectionRequestTimeout(1000)
-                    .setConnectTimeout(1000)
-                    .setSocketTimeout(1000)
+                    .setConnectionRequestTimeout(3000)
+                    .setConnectTimeout(3000)
+                    .setSocketTimeout(3000)
                     .build();
 
             final HttpGet httpGet;

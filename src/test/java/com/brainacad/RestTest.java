@@ -1,16 +1,16 @@
 package com.brainacad;
 
-import io.qameta.allure.restassured.AllureRestAssured;
-import io.restassured.RestAssured;
+import io.qameta.allure.Description;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
-import org.hamcrest.Matchers;
-import org.junit.Test;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -41,13 +41,16 @@ public class RestTest {
             .job("zion resident")
             .build();
 
-    //import org.testng.annotations.BeforeTest;
-    @BeforeTest
-    public void setFilter(){
-        RestAssured.filters(new AllureRestAssured());
-    }
+//    //import org.testng.annotations.BeforeTest;
+//    @BeforeTest
+//    public void setFilter(){
+//        RestAssured.filters(new AllureRestAssured());
+//    }
 
-    @Test
+    @Severity(SeverityLevel.MINOR)
+    @Description("Test description : check that status code is 200")
+    @Story("Get requests")
+    @Test(priority = 0, description = "Get request status code")
     public void checkGetResponseStatusCode() {
         //using ValidatableResponse for example
         ValidatableResponse resp = given()
@@ -63,7 +66,10 @@ public class RestTest {
         resp.statusCode(200);
     }
 
-    @Test
+    @Severity(SeverityLevel.TRIVIAL)
+    @Description("Test description : check that is not Null")
+    @Story("Get requests")
+    @Test(priority = 0, description = "Get request not Null")
     public void checkGetResponseBodyNotNull() {
 
         given()
@@ -79,7 +85,10 @@ public class RestTest {
                 .log().body();
     }
 
-    @Test
+    @Severity(SeverityLevel.TRIVIAL)
+    @Description("Test description : check that is not Null")
+    @Story("Post requests")
+    @Test(priority = 0, description = "Post request not Null")
     public void checkPostResponseBodyNotNull() {
         given()
                 .spec(spec)
@@ -231,8 +240,7 @@ public class RestTest {
 
                 .then()
                 .log().body()
-                .statusCode(204)
-                .body("$", Matchers.hasSize(0));
+                .statusCode(204);
     }
 
     @Test

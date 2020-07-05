@@ -1,0 +1,98 @@
+{
+  "type": "object",
+  "required": [
+    "page",
+    "per_page",
+    "total",
+    "total_pages",
+    "data"
+  ],
+  "properties": {
+    "page": {
+      "type": "integer"
+    },
+    "per_page": {
+      "type": "integer"
+    },
+    "total": {
+      "type": "integer"
+    },
+    "total_pages": {
+      "type": "integer"
+    },
+    "data": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "year": {
+              "type": "integer"
+            },
+            "color": {
+              "type": "string"
+            },
+            "pantone_value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "year",
+            "color",
+            "pantone_value"
+          ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "enum": [
+              1, 2, 3, 4, 5, 6
+            ]
+          },
+          "name": {
+            "type": ["string","null"],
+            "pattern": "^(.*)$"
+          },
+          "year": {
+            "type": "integer",
+            "pattern": "^d{4}$"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#.{6}$"
+          },
+          "pantone_value": {
+            "type": "string"
+          }
+        }
+      }
+      ]
+    },
+    "ad": {
+      "type": "object",
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "company",
+        "url",
+        "text"
+      ]
+    }
+  }
+}

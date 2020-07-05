@@ -1,68 +1,92 @@
 package com.brainacad;
 
+import io.qameta.allure.restassured.AllureRestAssured;
+import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
-import org.apache.http.HttpResponse;
-import org.junit.Assert;
+import io.restassured.specification.ResponseSpecification;
+import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.testng.annotations.BeforeTest;
 
-import java.io.IOException;
-import java.util.List;
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static com.jayway.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 
 public class RestTest {
 
     public static RequestSpecification spec = new RequestSpecBuilder()
             .setBaseUri("https://reqres.in/")
-            .addHeader("Content-Type", "application/json")
+            .setContentType(ContentType.JSON)
             .setBasePath("/api/users/{id}")
             .build();
-//    public static RequestSpecification responceSpec = new RequestSpecBuilder()
-//            .expectStatusCode(200)
-//            .build();
+    public static ResponseSpecification responseSpec =
+            new ResponseSpecBuilder()
+                    .expectStatusCode(200)
+                    .expectResponseTime(lessThan(5000L))
+                    .expectBody("$", hasKey("data"))
+                    .expectBody("$", hasKey("ad"))
+                    .build();
 
-    @Test//GET метод
-    public void checkGetResponseStatusCode() throws IOException {
-        given()
+    public static User userLeaderJob = User.builder()
+            .name("morpheus")
+            .job("leader")
+            .build();
+    public static User userZionJob = User.builder()
+            .name("morpheus")
+            .job("zion resident")
+            .build();
+
+    //import org.testng.annotations.BeforeTest;
+    @BeforeTest
+    public void setFilter(){
+        RestAssured.filters(new AllureRestAssured());
+    }
+
+    @Test
+    public void checkGetResponseStatusCode() {
+        //using ValidatableResponse for example
+        ValidatableResponse resp = given()
                 .spec(spec)
                 .pathParam("id", "")
-                .param("page",2)
+                .param("page", 2)
                 .log().body()
                 .when()
                 .get()
 
                 .then()
-                .log().body()
-                .statusCode(200);
-                //.body("{\"name\": \"morpheus\",\"job\": \"leader\"}")
+                .log().body();
+        resp.statusCode(200);
     }
 
-    @Test//GET метод
-    public void checkGetResponseBodyNotNull() throws IOException {
+    @Test
+    public void checkGetResponseBodyNotNull() {
+
         given()
                 .spec(spec)
                 .pathParam("id", "")
-                .param("page",2)
+                .param("page", 2)
                 .log().body()
                 .when()
                 .get()
 
                 .then()
                 .body("$", notNullValue())
-                .statusCode(200)
                 .log().body();
     }
 
-    @Test//POST метод
-    public void checkPostResponseBodyNotNull() throws IOException {
+    @Test
+    public void checkPostResponseBodyNotNull() {
         given()
                 .spec(spec)
                 .pathParam("id", "")
                 .log().body()
                 .when()
-                .body("{\"name\": \"morpheus\",\"job\": \"leader\"}")
+                .body(userLeaderJob)
                 .post()
 
                 .then()
@@ -73,33 +97,31 @@ public class RestTest {
                 .log().body();
     }
 
-    //TODO: в тескейсах проверьте Result Code и несколько параметров из JSON ответа (если он есть)
-    @Test//POST метод
-    public void checkPostResponseParams() throws IOException {
+    @Test
+    public void checkPostResponseParams() {
         given()
                 .spec(spec)
                 .pathParam("id", "")
+                .body(userLeaderJob)
                 .log().body()
                 .when()
-                .body("{\"name\": \"morpheus\",\"job\": \"leader\"}")
                 .post()
 
                 .then()
                 .statusCode(201)
-                .body("$", hasEntry("name","morpheus"))
-                .body("$", hasValue("leader"))
-                .log().body();
+                .log().body()
+                .body("$", hasEntry("name", "morpheus"))
+                .body("$", hasValue("leader"));
     }
 
-    //TODO: напишите по тесткейсу на каждый вариант запроса на сайте https://reqres.in
-    @Test//Put метод
-    public void checkPutResponse() throws IOException {
+    @Test
+    public void checkPutResponse() {
         given()
                 .spec(spec)
                 .pathParam("id", 2)
                 .log().body()
+                .body(userZionJob)
                 .when()
-                .body("{\"name\": \"morpheus\",\"job\": \"zion resident\"}")
                 .put()
 
                 .then()
@@ -107,226 +129,185 @@ public class RestTest {
                 .body("$", hasEntry("job", "zion resident"))
                 .body("$", hasKey("updatedAt"))
                 .log().body();
-//    .spec(responce)
-//    .body(matchesJsonSchemaInClasspath("usersResponseSchema.json"));
     }
 
-//    @Test// 2 Get метод
-//    public void checkGetResponseSingleUser() throws IOException {
-//        int userId = 2;
-//        String endpoint = "/api/users";
-//        String path = "/" + userId;
-//
-//        HttpResponse response = HttpClientHelper.get(URL + endpoint + path);
-//
-//        //получаем статус код из ответа
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        int id = JsonUtils.intFromJSONByPath(body, "$.data.id");
-//
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        System.out.println("Id in response is : " + userId);
-//        Assert.assertEquals("Response should contain userId : \"2\"", userId, id);
-//    }
-//
-//    @Test// 3 Get метод
-//    public void checkGetResponseSingleUserNotFound() throws IOException {
-//        int userId = 32;
-//        String endpoint = "/api/users";
-//        String path = "/" + userId;
-//
-//        HttpResponse response = HttpClientHelper.get(URL + endpoint + path);
-//
-//        //получаем статус код из ответа 404
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        //List<Object> list = JsonUtils.listFromJSONByPath(body, "$"); //?? hot to find all. An error appears com.jayway.jsonpath.InvalidPathException: Path must not end with a '.' or '..'
-//
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 404", 404, statusCode);
-//
-//        System.out.println("Body in response should be empty : " + body);
-//        Assert.assertTrue("Response should contain empty list", body.equals("{}"));
-//    }
-//
-//    @Test// 4 Get метод
-//    public void checkGetResponseList() throws IOException {
-//        String endpoint = "/api/unknown";
-//        HttpResponse response = HttpClientHelper.get(URL + endpoint);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();//200
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        List<Object> list = JsonUtils.listFromJSONByPath(body, "$.data[*].id");
-//
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        System.out.println("Body in response should be not empty : " + list);
-//        Assert.assertFalse("Response should not be empty", list.isEmpty());
-//    }
-//
-//    @Test// 5 Get метод
-//    public void checkGetResponseSingleResource() throws IOException {
-//        String endpoint = "/api/unknown";
-//        String path = "/2";
-//        HttpResponse response = HttpClientHelper.get(URL + endpoint + path);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();//200
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        int id = JsonUtils.intFromJSONByPath(body, "$.data.id");
-//
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        System.out.println("Body in response should contain only single resource : " + body);
-//        Assert.assertEquals("Response should contain single correcy id", id, 2);
-//    }
-//
-//    @Test// 6 Get метод
-//    public void checkGetResponseSingleResourceNotFound() throws IOException {
-//        String endpoint = "/api/unknown";
-//        String path = "/23";
-//        HttpResponse response = HttpClientHelper.get(URL + endpoint + path);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();//404
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 404", 404, statusCode);
-//
-//        System.out.println("Body in response should be empty : " + body);
-//        Assert.assertEquals("Response should contain empty body", "{}", body);
-//    }
-//
-//    //@Test//Patch метод
-//    @Test//Patch метод
-//    public void checkPatchResponse() throws IOException {
-//        String endpoint = "/api/users";
-//        String path = "/2";
-//        String requestBody = "{\"name\": \"morpheus\",\"job\": \"zion resident\"}";
-//
-//        HttpResponse response = HttpClientHelper.patch(URL + endpoint + path, requestBody);
-//
-//        //получаем статус код из ответа
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        String job = JsonUtils.stringFromJSONByPath(body, "job");
-//
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        System.out.println("Body is not empty. Job: " + job);
-//        Assert.assertEquals("Response should contain Job : \"zion resident\"", "zion resident", job);
-//    }
-//
-//    //@Test//Delete метод
-//    @Test//Delete метод
-//    public void checkDeleteResponse() throws IOException {
-//        String endpoint = "/api/users";
-//        String path = "/2";
-//
-//        HttpResponse response = HttpClientHelper.delete(URL + endpoint + path);
-//
-//        //получаем статус код из ответа
-//        int statusCode = response.getStatusLine().getStatusCode();//204
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 204", 204, statusCode);
-//
-//        try {
-//            String body = HttpClientHelper.getBodyFromResponse(response);
-//        } catch (java.lang.NullPointerException e) {
-//            System.out.println("Body is absent :" + e.toString());
-//            //????how to make checking here?
-//        }
-//
-//    }
-//
-//    @Test//POST метод
-//    public void checkPostRegisterSuccessful() throws IOException {
-//        String endpoint = "/api/register";
-//        String requestBody = "{\"email\": \"eve.holt@reqres.in\",\"password\": \"pistol\"}";
-//
-//        HttpResponse response = HttpClientHelper.post(URL + endpoint, requestBody);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        List<Object> values = JsonUtils.listFromJSONByPath(body, "$[*]");
-//
-//        System.out.print("New id created: " + values.get(0));
-//        Assert.assertEquals("New user should be created with unique Id", 4, values.get(0));
-//    }
-//
-//    @Test//POST метод
-//    public void checkPostRegisterUnsuccessful() throws IOException {
-//        String endpoint = "/api/register";
-//        String requestBody = "{\"email\": \"sydney@fife\"}";
-//
-//        HttpResponse response = HttpClientHelper.post(URL + endpoint, requestBody);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 400", 400, statusCode);
-//
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        List<Object> values = JsonUtils.listFromJSONByPath(body, "$[*]");
-//
-//        System.out.print("Response body contains: " + body);
-//        Assert.assertEquals("An error message should appear", "Missing password", values.get(0));
-//    }
-//
-//    @Test//POST метод
-//    public void checkPostLoginSuccessful() throws IOException {
-//        String endpoint = "/api/login";
-//        String requestBody = "{\"email\": \"eve.holt@reqres.in\",\"password\": \"cityslicka\"}";
-//
-//        HttpResponse response = HttpClientHelper.post(URL + endpoint, requestBody);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//
-//        System.out.print("Body is not empty: " + body);
-//        Assert.assertTrue("Token should appear in response", body.contains("token"));
-//    }
-//
-//    @Test//POST метод
-//    public void checkPostLoginUnsuccessful() throws IOException {
-//        String endpoint = "/api/login";
-//        String requestBody = "{\"email\": \"peter@klaven\"}";
-//
-//        HttpResponse response = HttpClientHelper.post(URL + endpoint, requestBody);
-//
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        System.out.println("Response Code : " + statusCode);
-//        Assert.assertEquals("Response status code should be 400", 400, statusCode);
-//
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        List<Object> values = JsonUtils.listFromJSONByPath(body, "$[*]");
-//
-//        System.out.print("Response body contains: " + body);
-//        Assert.assertEquals("An error message should appear", "Missing password", values.get(0));
-//    }
-//
-//    @Test//GET метод
-//    public void checkGetDelayedResponse() throws IOException {
-//        String endpoint = "/api/users";
-//        HttpResponse response = HttpClientHelper.get(URL + endpoint, "delay=3");
-//
-//        int statusCode = response.getStatusLine().getStatusCode();
-//        System.out.println("Response Code : " +   statusCode);
-//        Assert.assertEquals("Response status code should be 200", 200, statusCode);
-//
-//        String body = HttpClientHelper.getBodyFromResponse(response);
-//        List<Object> ids = JsonUtils.listFromJSONByPath(body, "$.data[*].id");
-//
-//        System.out.println("Body in response : " + body);
-//        Assert.assertTrue("Response should contain list of ids", ids.size() > 1);
-//    }
+    @Test
+    public void checkGetResponseSingleUser() {
+        given()
+                .spec(spec)
+                .pathParam("id", 2)
+                .when()
+                .get()
+
+                .then()
+                .log().body()
+                .spec(responseSpec)
+                .body("data", hasEntry("id", 2));
+    }
+
+    @Test
+    public void checkGetResponseSingleUserNotFound(){
+        given()
+                .spec(spec)
+                .pathParam("id", 32)
+                .when()
+                .get()
+
+                .then()
+                .log().body()
+                .statusCode(404);
+    }
+
+    @Test
+    public void checkGetResponseList(){
+        ValidatableResponse resp = given()
+                .spec(spec)
+                .basePath("/api/unknown")
+                .when()
+                .get()
+
+                .then()
+                .log().body()
+                .spec(responseSpec);
+        resp.body("data.size()", equalTo(resp.extract().body().path("per_page")));
+        resp.body(matchesJsonSchemaInClasspath("unknownUsersResponseSchema.json"));
+    }
+
+    @Test
+    public void checkGetResponseSingleResource(){
+        given()
+                .spec(spec)
+                .basePath("/api/unknown/{id}")
+                .pathParam("id", 2)
+                .when()
+                .get()
+
+                .then()
+                .log().body()
+                .spec(responseSpec)
+                .body("data", hasEntry("id", 2));
+    }
+
+    @Test
+    public void checkGetResponseSingleResourceNotFound(){
+        given()
+                .spec(spec)
+                .basePath("/api/unknown/{id}")
+                .pathParam("id", 23)
+                .when()
+                .get()
+
+                .then()
+                .log().all()
+                .statusCode(404);
+    }
+
+    @Test
+    public void checkPatchResponse() {
+        given()
+                .spec(spec)
+                .pathParam("id", 2)
+                .log().body()
+                .body(userZionJob)
+                .log().body()
+                .when()
+                .patch()
+
+                .then()
+                .log().body()
+                .statusCode(200)
+                .body("", hasKey("updatedAt"))
+                .body("", hasEntry("job", "zion resident"));
+    }
+
+    @Test
+    public void checkDeleteResponse() {
+        given()
+                .spec(spec)
+                .pathParam("id", 2)
+                .log().body()
+                .when()
+                .delete()
+
+                .then()
+                .log().body()
+                .statusCode(204)
+                .body("$", Matchers.hasSize(0));
+    }
+
+    @Test
+    public void checkPostRegisterSuccessful(){
+        given()
+                .spec(spec)
+                .basePath("/api/register")
+                .when()
+                .body("{\"email\": \"eve.holt@reqres.in\",\"password\": \"pistol\"}")
+                .post()
+
+                .then()
+                .log().body()
+                .statusCode(200)
+                .body("$", hasKey("token"))
+                .body("", hasEntry("id", 4));
+    }
+
+    @Test
+    public void checkPostRegisterUnsuccessful() {
+        given()
+                .spec(spec)
+                .basePath("/api/register")
+                .when()
+                .body("{\"email\": \"sydney@fife\"}")
+                .post()
+
+                .then()
+                .log().body()
+                .statusCode(400)
+                .body("", hasEntry("error", "Missing password"));
+    }
+
+    @Test
+    public void checkPostLoginSuccessful(){
+        given()
+                .spec(spec)
+                .basePath("/api/login")
+                .when()
+                .body("{\"email\": \"eve.holt@reqres.in\",\"password\": \"cityslicka\"}")
+                .post()
+
+                .then()
+                .log().body()
+                .statusCode(200)
+                .body("", hasKey("token"));
+    }
+
+    @Test
+    public void checkPostLoginUnsuccessful(){
+        given()
+                .spec(spec)
+                .basePath("/api/login")
+                .when()
+                .body("{\"email\": \"peter@klaven\"}")
+                .post()
+
+                .then()
+                .log().body()
+                .statusCode(400)
+                .body("", hasEntry("error", "Missing password"));
+    }
+
+    @Test
+    public void checkGetDelayedResponse(){
+        given()
+                .spec(spec)
+                .pathParam("id","")
+                .param("delay=3")
+                .when()
+                .get()
+
+                .then()
+                .log().body()
+                .spec(responseSpec)
+                .body(matchesJsonSchemaInClasspath("userResponseSchema.json"));
+    }
 }

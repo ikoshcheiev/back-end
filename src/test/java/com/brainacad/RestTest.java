@@ -25,7 +25,7 @@ public class RestTest {
     public static RequestSpecification spec = new RequestSpecBuilder()
             .setBaseUri("https://reqres.in/")
             .setContentType(ContentType.JSON)
-            .setBasePath("/api/users/{id}")
+            .setBasePath("/api/{action}/{id}")
             .build();
     public static ResponseSpecification responseSpec =
             new ResponseSpecBuilder()
@@ -52,50 +52,47 @@ public class RestTest {
     @Severity(SeverityLevel.MINOR)
     @Description("Test description : check that status code is 200")
     @Story("Get requests")
-    @Test(priority = 0, description = "Get request status code")
+    @Test(priority = 2, description = "Get request list users")
     public void checkGetResponseStatusCode() {
         //using ValidatableResponse for example
         ValidatableResponse resp = given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", "")
                 .param("page", 2)
-                .log().body()
                 .when()
                 .get()
-
-                .then()
-                .log().body();
-        resp.statusCode(200);
+                .then();
+        //Fail for testing. Expect to receive 200
+        resp.statusCode(201);
     }
 
     @Severity(SeverityLevel.TRIVIAL)
     @Description("Test description : check that is not Null")
     @Story("Get requests")
-    @Test(priority = 0, description = "Get request not Null")
+    @Test(priority = 3, description = "Get request list users")
     public void checkGetResponseBodyNotNull() {
 
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", "")
                 .param("page", 2)
-                .log().body()
                 .when()
                 .get()
-
                 .then()
-                .body("$", notNullValue())
-                .log().body();
+                .body("$", notNullValue());
     }
 
     @Severity(SeverityLevel.TRIVIAL)
     @Description("Test description : check that is not Null")
     @Story("Post requests")
-    @Test(priority = 0, description = "Post request not Null")
+    @Test(priority = 3, description = "Post request create user")
     public void checkPostResponseBodyNotNull() {
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", "")
-                .log().body()
                 .when()
                 .body(userLeaderJob)
                 .post()
@@ -104,219 +101,243 @@ public class RestTest {
                 .statusCode(201)
                 .body("$", notNullValue())
                 .body("$", hasKey("id"))
-                .body("$", hasKey("createdAt"))
-                .log().body();
+                .body("$", hasKey("createdAt"));
     }
 
-    @Test
+
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code and response params are ok")
+    @Story("Post requests")
+    @Test(priority = 0, description = "Post request create user")
     public void checkPostResponseParams() {
         given()
                 .spec(spec)
-                .pathParam("id", "")
+                .pathParam("action", "users")
+                //Failed for testing. To make working need to uncomment next string with 'id'
+                /*.pathParam("id", "")*/
                 .body(userLeaderJob)
-                .log().body()
                 .when()
                 .post()
-
                 .then()
                 .statusCode(201)
-                .log().body()
                 .body("$", hasEntry("name", "morpheus"))
                 .body("$", hasValue("leader"));
     }
 
-    @Test
+
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code and response params are ok")
+    @Story("Put requests")
+    @Test(priority = 0, description = "Put request update")
     public void checkPutResponse() {
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", 2)
-                .log().body()
                 .body(userZionJob)
                 .when()
                 .put()
-
                 .then()
                 .statusCode(200)
                 .body("$", hasEntry("job", "zion resident"))
-                .body("$", hasKey("updatedAt"))
-                .log().body();
+                .body("$", hasKey("updatedAt"));
     }
 
-    @Test
+
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code and response params are ok")
+    @Story("Get requests")
+    @Test(priority = 0, description = "Get request single user")
     public void checkGetResponseSingleUser() {
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", 2)
                 .when()
                 .get()
-
                 .then()
-                .log().body()
                 .spec(responseSpec)
                 .body("data", hasEntry("id", 2));
     }
 
-    @Test
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Test description : check that status code is 404")
+    @Story("Get requests")
+    @Test(priority = 2, description = "Get request single user not found")
     public void checkGetResponseSingleUserNotFound(){
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", 32)
                 .when()
                 .get()
-
                 .then()
-                .log().body()
                 .statusCode(404);
     }
 
-    @Test
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code and response params are ok")
+    @Story("Get requests")
+    @Test(priority = 0, description = "Get request list <Resource>")
     public void checkGetResponseList(){
         ValidatableResponse resp = given()
                 .spec(spec)
-                .basePath("/api/unknown")
+                .pathParam("action", "unknown")
+                .pathParam("id", "")
                 .when()
                 .get()
-
-                .then()
-                .log().body()
-                .spec(responseSpec);
+                .then();
+        resp.spec(responseSpec);
         resp.body("data.size()", equalTo(resp.extract().body().path("per_page")));
         resp.body(matchesJsonSchemaInClasspath("unknownUsersResponseSchema.json"));
     }
 
-    @Test
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code, id and response params are ok")
+    @Story("Get requests")
+    @Test(priority = 0, description = "Get request single <Resource>")
     public void checkGetResponseSingleResource(){
         given()
                 .spec(spec)
-                .basePath("/api/unknown/{id}")
+                .pathParam("action", "unknown")
                 .pathParam("id", 2)
                 .when()
                 .get()
-
                 .then()
-                .log().body()
                 .spec(responseSpec)
                 .body("data", hasEntry("id", 2));
     }
 
-    @Test
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Test description : check that status code is 404")
+    @Story("Get requests")
+    @Test(priority = 2, description = "Get request single <Resource> not found")
     public void checkGetResponseSingleResourceNotFound(){
         given()
                 .spec(spec)
-                .basePath("/api/unknown/{id}")
+                .pathParam("action", "unknown")
                 .pathParam("id", 23)
                 .when()
                 .get()
-
                 .then()
-                .log().all()
                 .statusCode(404);
     }
 
-    @Test
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Test description : check that status code and response params are ok")
+    @Story("Patch requests")
+    @Test(priority = 1, description = "Patch request update user")
     public void checkPatchResponse() {
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", 2)
-                .log().body()
                 .body(userZionJob)
-                .log().body()
                 .when()
                 .patch()
-
                 .then()
-                .log().body()
                 .statusCode(200)
                 .body("", hasKey("updatedAt"))
                 .body("", hasEntry("job", "zion resident"));
     }
 
-    @Test
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code is 204")
+    @Story("Delete requests")
+    @Test(priority = 0, description = "Delete request delete user")
     public void checkDeleteResponse() {
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id", 2)
-                .log().body()
                 .when()
                 .delete()
-
                 .then()
-                .log().body()
                 .statusCode(204);
     }
 
-    @Test
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code and response params are ok")
+    @Story("Post requests")
+    @Test(priority = 0, description = "Post request register - successful")
     public void checkPostRegisterSuccessful(){
         given()
                 .spec(spec)
-                .basePath("/api/register")
+                .pathParam("action", "register")
+                .pathParam("id", "")
                 .when()
                 .body("{\"email\": \"eve.holt@reqres.in\",\"password\": \"pistol\"}")
                 .post()
-
                 .then()
-                .log().body()
                 .statusCode(200)
                 .body("$", hasKey("token"))
                 .body("", hasEntry("id", 4));
     }
 
-    @Test
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Test description : check that status code is 400")
+    @Story("Post requests")
+    @Test(priority = 1, description = "Post request register - unsuccessful")
     public void checkPostRegisterUnsuccessful() {
         given()
                 .spec(spec)
-                .basePath("/api/register")
+                .pathParam("action", "register")
+                .pathParam("id", "")
                 .when()
                 .body("{\"email\": \"sydney@fife\"}")
                 .post()
-
                 .then()
-                .log().body()
                 .statusCode(400)
                 .body("", hasEntry("error", "Missing password"));
     }
 
-    @Test
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description : check that status code and token are ok")
+    @Story("Post requests")
+    @Test(priority = 0, description = "Post request login - successful")
     public void checkPostLoginSuccessful(){
         given()
                 .spec(spec)
-                .basePath("/api/login")
+                .pathParam("action", "login")
+                .pathParam("id", "")
                 .when()
                 .body("{\"email\": \"eve.holt@reqres.in\",\"password\": \"cityslicka\"}")
                 .post()
-
                 .then()
-                .log().body()
                 .statusCode(200)
                 .body("", hasKey("token"));
     }
 
-    @Test
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Test description : check that status code is 400")
+    @Story("Post requests")
+    @Test(priority = 1, description = "Post request login - unsuccessful")
     public void checkPostLoginUnsuccessful(){
         given()
                 .spec(spec)
-                .basePath("/api/login")
+                .pathParam("action", "login")
+                .pathParam("id", "")
                 .when()
                 .body("{\"email\": \"peter@klaven\"}")
                 .post()
-
                 .then()
-                .log().body()
                 .statusCode(400)
                 .body("", hasEntry("error", "Missing password"));
     }
 
-    @Test
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Test description : check that status code and respose params are ok")
+    @Story("Get requests")
+    @Test(priority = 2, description = "Get request delayed response")
     public void checkGetDelayedResponse(){
         given()
                 .spec(spec)
+                .pathParam("action", "users")
                 .pathParam("id","")
                 .param("delay=3")
                 .when()
                 .get()
-
                 .then()
-                .log().body()
                 .spec(responseSpec)
                 .body(matchesJsonSchemaInClasspath("userResponseSchema.json"));
     }

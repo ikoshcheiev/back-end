@@ -1,9 +1,6 @@
-package com.brainacad;
+package com.brainacad.restTests;
 
-import io.qameta.allure.Description;
-import io.qameta.allure.Severity;
-import io.qameta.allure.SeverityLevel;
-import io.qameta.allure.Story;
+import io.qameta.allure.*;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -19,7 +16,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static com.jayway.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
-
+//@Epic("API testing")
+//@Feature("Api testing reqres.in")
 public class RestTest {
 
     public static RequestSpecification spec = new RequestSpecBuilder()
@@ -44,7 +42,7 @@ public class RestTest {
             .job("zion resident")
             .build();
 
-    @BeforeTest
+    @BeforeTest(description = "Attaching Body to allure reports")
     public void setFilter(){
         RestAssured.filters(new AllureRestAssured());
     }

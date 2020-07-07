@@ -1,4 +1,4 @@
-package com.brainacad;
+package com.brainacad.restTests;
 
 import lombok.Builder;
 import lombok.Data;

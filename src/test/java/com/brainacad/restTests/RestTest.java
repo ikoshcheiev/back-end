@@ -1,4 +1,5 @@
-package com.brainacad;
+package com.brainacad.restTests;
+
 
 import io.qameta.allure.Description;
 import io.qameta.allure.Severity;

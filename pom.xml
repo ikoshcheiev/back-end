@@ -16,13 +16,11 @@
     </properties>
 
     <dependencies>
-        <!-- Allure plugin for REST-Assured-->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-rest-assured</artifactId>
             <version>2.13.1</version>
         </dependency>
-        <!--Json Schema matcher-->
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>json-schema-validator</artifactId>

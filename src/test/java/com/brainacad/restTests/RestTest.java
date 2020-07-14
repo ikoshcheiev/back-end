@@ -1,6 +1,9 @@
-package com.brainacad.restTests;
+package com.brainacad;
 
-import io.qameta.allure.*;
+import io.qameta.allure.Description;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -12,12 +15,10 @@ import io.restassured.specification.ResponseSpecification;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
 import static com.jayway.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static io.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.*;
 
-//@Epic("API testing")
-//@Feature("Api testing reqres.in")
 public class RestTest {
 
     public static RequestSpecification spec = new RequestSpecBuilder()
